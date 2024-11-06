@@ -1,6 +1,7 @@
 .pio
 .clang_complete
 .ccls
+.cache
 .direnv
 .platformio-dir
 compile_commands.json
