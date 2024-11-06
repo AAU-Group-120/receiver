@@ -8,6 +8,7 @@ TFT_eSPI tft = TFT_eSPI();           // TFT object
 #define BGCOLOR 0x0000
 #define TXTCOLOR 0xFFFF
 #define TXTSIZE 2
+String Errormessage = "Højre blinklys";
 
 void setup() {
   // put your setup code here, to run once:
@@ -21,8 +22,9 @@ void setup() {
   tft.fillScreen(BGCOLOR);
   tft.setTextColor(TXTCOLOR);
   tft.setTextSize(TXTSIZE);
-  tft.setCursor(0,0,2);
-  tft.print("Inductor");
+  tft.setCursor(0,0,0);
+  tft.print("Fejl: ");
+  tft.println(Errormessage);
 
 
 }
@@ -30,7 +32,10 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-
+tft.fillTriangle(70, 110, 120, 35, 170, 110, TFT_YELLOW);
+  delay(1000);
+tft.fillTriangle(70, 110, 120, 35, 170, 110, TFT_BLACK);
+  delay(1000);
 
 }
 
