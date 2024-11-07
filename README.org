@@ -1,5 +1,5 @@
 #+title: Readme
 
 
-* Reciver   
+* Receiver   
 Used for displaying the failures in light system to the driver
