@@ -37,7 +37,7 @@ void setup() {
 
 void loop() {
   if (SerialBT.available()) { // Check if data is available from the server
-    char receivedData = SerialBT.read(); // Read data from Bluetooth
+    String receivedData = SerialBT.readString(); // Read data from Bluetooth
     Serial.print("Received: ");
     Serial.println(receivedData); // Print received data to Serial Monitor
   }
