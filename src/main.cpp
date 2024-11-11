@@ -8,7 +8,7 @@ TFT_eSPI tft = TFT_eSPI();           // TFT object
 #define BGCOLOR 0x0000
 #define TXTCOLOR 0xFFFF
 #define TXTSIZE 2
-char Testbyte = 25 ;
+char Testbyte = 0 ;
 int b0, b1, b2, b3, b4, b5, b6, b7, RESULT;
 String Errormessage1 = "Højre Blinklys";
 String Errormessage2 = "Venstre Blinklys";
@@ -16,6 +16,8 @@ String Errormessage3 = "Højre Kørelys";
 String Errormessage4 = "Venstre Kørelys";
 String Errormessage5 = "Stop Lys";
 String Errormessage6 = "Tåge Lys";
+String Errormessage7 = "Inductor";
+String Errormessage8 = "Capasitor";
 
 void printError ();
 
@@ -33,27 +35,28 @@ void setup() {
   tft.setTextSize(TXTSIZE);
   tft.setCursor(0,0,0);
 
-  
-  b0 = (Testbyte & 0x01) ? 1:0;
-  b1 = (Testbyte & 0x02) ? 1:0;
-  b2 = (Testbyte & 0x04) ? 1:0;
-  b3 = (Testbyte & 0x08) ? 1:0;
-  b4 = (Testbyte & 0x10) ? 1:0;
-  b5 = (Testbyte & 0x20) ? 1:0;
-  b6 = (Testbyte & 0x40) ? 1:0;
-  b7 = (Testbyte & 0x80) ? 1:0;
-  
-
-RESULT = b0+b1+b2+b3+b4+b5+b6+b7;
-
-
-printError();
-
 
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+
+  for (int i = 0; i < 256; i++){
+    Testbyte = i;
+    b0 = (Testbyte & 0x01) ? 1:0;
+    b1 = (Testbyte & 0x02) ? 1:0;
+    b2 = (Testbyte & 0x04) ? 1:0;
+    b3 = (Testbyte & 0x08) ? 1:0;
+    b4 = (Testbyte & 0x10) ? 1:0;
+    b5 = (Testbyte & 0x20) ? 1:0;
+    b6 = (Testbyte & 0x40) ? 1:0;
+    b7 = (Testbyte & 0x80) ? 1:0;
+
+    tft.setCursor(0,0,0);
+    printError();
+
+    delay(1000);
+  }
 }
 
 
@@ -66,6 +69,8 @@ void printError() {
   if (b3 == 1) errorMsg += Errormessage4 + ", ";
   if (b4 == 1) errorMsg += Errormessage5 + ", ";
   if (b5 == 1) errorMsg += Errormessage6 + ", ";
+  if (b6 == 1) errorMsg += Errormessage7 + ", ";
+  if (b7 == 1) errorMsg += Errormessage8 + ", ";
 
   // Remove the last ", " if there are any messages
   if (errorMsg.endsWith(", ")) {
