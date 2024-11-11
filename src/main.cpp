@@ -46,10 +46,8 @@ void setup() {
 
 RESULT = b0+b1+b2+b3+b4+b5+b6+b7;
 
-if (RESULT==1)
-{
+
 printError();
-}
 
 
 }
@@ -61,31 +59,33 @@ void loop() {
 
 }
 
-void printError()
-{
-if (b0==1){
-  tft.println(Errormessage1);
+
+void printError() {
+  String errorMsg = "";
+
+  if (b0 == 1) errorMsg += Errormessage1 + ", ";
+  if (b1 == 1) errorMsg += Errormessage2 + ", ";
+  if (b2 == 1) errorMsg += Errormessage3 + ", ";
+  if (b3 == 1) errorMsg += Errormessage4 + ", ";
+  if (b4 == 1) errorMsg += Errormessage5 + ", ";
+  if (b5 == 1) errorMsg += Errormessage6 + ", ";
+
+  // Remove the last ", " if there are any messages
+  if (errorMsg.endsWith(", ")) {
+    errorMsg = errorMsg.substring(0, errorMsg.length() - 2);
+  }
+
+  // Replace the last comma with " og " if there is more than one error
+  int lastComma = errorMsg.lastIndexOf(", ");
+  if (lastComma != -1) {
+    errorMsg = errorMsg.substring(0, lastComma) + " og" + errorMsg.substring(lastComma + 1);
+  }
+
+  if (errorMsg != "") {
+    tft.println(errorMsg);
+  } else {
+    tft.println("Ingen fejl");
+  }
 }
-else if (b1==1){
-  tft.println(Errormessage2);
-}
-else if (b2==1){
-  tft.println(Errormessage3);
-}
-else if (b3==1){
-  tft.println(Errormessage4);
-}
-else if (b4==1){
-  tft.println(Errormessage5);
-}
-else if (b5==1){
-  tft.println(Errormessage6);
-}
-else if (b6==1){
-  tft.println("1");
-}
-else {
-  tft.println("2");
-}
-}
+
 
