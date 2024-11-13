@@ -13,14 +13,14 @@ int scrollPos = 0;       // Position for horizontal scrolling
 int Testbyte = 0;        // Changing byte value
 
 // Error messages associated with each bit in the byte
-String Errormessage1 = "Højre Blinklys";
-String Errormessage2 = "Venstre Blinklys";
-String Errormessage3 = "Højre Kørelys";
-String Errormessage4 = "Venstre Kørelys";
-String Errormessage5 = "Stop Lys";
-String Errormessage6 = "Tåge Lys";
-String Errormessage7 = "Inductor";
-String Errormessage8 = "YOLO";
+String Errormessage1 = "Right indicator";
+String Errormessage2 = "Left indicator";
+String Errormessage3 = "Right runninglight";
+String Errormessage4 = "Left runninglight";
+String Errormessage5 = "Brake lights";
+String Errormessage6 = "Fog Light";
+String Errormessage7 = "Error1";
+String Errormessage8 = "Error2";
 
 // Function to generate error message based on byte
 String generateErrorMessage(int byteValue);
