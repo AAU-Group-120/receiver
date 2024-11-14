@@ -1,19 +1,23 @@
 #include <Arduino.h>
-#include <TFT_eSPI.h> // Hardware-specific library
+#include <TFT_eSPI.h>          // Hardware-specific library for TFT
 #include <SPI.h>
-#include "BluetoothSerial.h"  // Include the Bluetooth Serial library
+#include "BluetoothSerial.h"   // Bluetooth Serial library
 
 TFT_eSPI tft = TFT_eSPI();            // TFT object
 TFT_eSprite errorlist = TFT_eSprite(&tft); // Sprite object for Error messages
 
-BluetoothSerial SerialBT;     // Create a Bluetooth Serial object
+BluetoothSerial SerialBT;      // Create a Bluetooth Serial object
+
+void BTConnect();              // Function to handle Bluetooth connection
+
+bool connected = false;        // Flag to track Bluetooth connection state
 
 // Set up variables and parameters
 #define BGCOLOR 0x0000   // Background color
 #define TXTCOLOR 0xFFFF  // Text color
 #define TXTSIZE 2        // Text size (larger values = larger text)
 int scrollPos = 0;       // Position for horizontal scrolling
-int receivedData = 0;
+int data = 0;
 
 // Error messages associated with each bit in the byte
 String Errormessage1 = "Right indicator";
@@ -31,11 +35,14 @@ String generateErrorMessage(int byteValue);
 void setup() {
   Serial.begin(115200);        // Initialize serial monitor
   SerialBT.begin("ESP32_Reciever", true); // Set Bluetooth name and enable Master mode
-  Serial.println("Bluetooth Receiver Started. Attempting to connect...");
 
-  tft.init();
-  tft.setRotation(3);
-  tft.fillScreen(BGCOLOR);
+  Serial.println("Bluetooth Receiver Started. Attempting to connect...");
+  
+  tft.init();                        // Initialize the TFT screen
+  tft.setRotation(3);                // Set screen orientation if necessary
+  tft.fillScreen(BGCOLOR);         // Clear screen with black background
+  
+  BTConnect();                       // Attempt to connect to transmitter
 
   // Create a sprite for Error messages
   errorlist.setColorDepth(8);
@@ -44,65 +51,88 @@ void setup() {
   errorlist.setTextColor(TXTCOLOR); // Set text color
   errorlist.setTextSize(TXTSIZE);   // Set text size
 
-  unsigned long startTime = millis(); // Record the start time
-  const unsigned long timeout = 120000; // Set timeout period to 2 minutes (120000 ms)
-  bool connected = false;
+}
 
-  // Keep trying to connect until successful or timeout
+
+void BTConnect()
+{
+  unsigned long startTime = millis(); // Record the start time
+  const unsigned long timeout = 12000; // Set timeout period to 12 seconds (120000 ms)
+  connected = false;
+  unsigned long retryDelay = 2000;
+
+  tft.fillScreen(BGCOLOR);// Clear screen
+  tft.drawString("Connecting!", 10, 10, 2); // Display "Connecting!"
+
+  delay(2000); // Optional delay to allow Bluetooth module initialization
+
+  // Attempt to connect until successful or timeout
   while (millis() - startTime < timeout) 
   {
-    if (SerialBT.connect("ESP32_Transmitter")) 
-    { // Attempt to connect to ESP32_Transmitter
+    if (SerialBT.connect("ESP32_Transmitter")) { // Attempt to connect to transmitter
       connected = true;
       Serial.println("Connected to ESP32_Transmitter!");
+      tft.fillScreen(BGCOLOR);
+      tft.drawString("Connected to ESP32_Transmitter!", 10, 10, 2); // Display success message
+      delay(2000);
       break;
     } 
     else 
     {
       Serial.println("Connection failed. Retrying...");
-      delay(2000); // Wait 5 seconds before trying again
+      tft.fillScreen(BGCOLOR);       // Clear screen
+      tft.drawString("Connection failed", 10, 10, 2);
+      tft.drawString(" Retrying...", 10, 50, 2);
+      delay(retryDelay); // Delay before retrying
     }
   }
-  // Check if we connected successfully or timed out
+  // Check if connection was successful or timed out
   if (!connected) 
   {
-    Serial.println("Failed to connect. Please restart!"); //denne fejl meddelses skal displayes på display
-    while (true) 
-    { // Stop further attempts if timed out
+    Serial.println("Failed to connect. Please restart!");
+    tft.fillScreen(BGCOLOR);
+    tft.drawString("Failed to connect", 10, 10, 2); // Display failure message
+    tft.drawString("Please restart!", 10, 50, 2); // Display failure message
+    while (true) { // Stop further attempts if timed out
       delay(1000);
     }
   }
 }
 
-void loop() {
-  if (SerialBT.available()) { // Check if data is available from the server
-    String receivedString = SerialBT.readString(); // Read data from Bluetooth
-    receivedData = receivedString.toInt();
+void checkConnection()
+{
+  // Check if the Bluetooth is still connected
+  if (connected && !SerialBT.connected()) {
+    // If we were connected but lost the connection
+    connected = false; // Update connection state
+    Serial.println("Lost connection");
+    Serial.println("Trying to reconnect");
+    //tft.fillScreen(BGCOLOR);        // Clear screen
+    //tft.drawString("Lost connection", 10, 10, 2); // Display lost connection message
+    //tft.drawString("Trying to reconnect", 10, 50, 2); // Display lost connection message
   }
 
-  // Generate the error message based on the current byte value
-  String errorMsg = generateErrorMessage(receivedData);
-
-  // Clear the sprite area
-  errorlist.fillSprite(BGCOLOR);
-
-  // Draw the message starting from the current scroll position
-  errorlist.drawString(errorMsg, -scrollPos, 0, 2); // Draw text, starting position off-screen to the left
-
-  // Push the updated sprite to the screen
-  errorlist.pushSprite(0, 0);
-
-  // Increment scroll position for next frame
-  scrollPos += 2;  // Adjust scroll speed (higher values = faster scrolling)
-
-  // Reset scroll position if the text has fully scrolled off the left side
-  int textWidth = errorlist.textWidth(errorMsg, 2); // Calculate the text width
-  if (scrollPos > textWidth) {
-    scrollPos = 0;          // Restart scrolling from the beginning
+  // Reconnect if connection is lost
+  if (!connected) {
+    BTConnect(); // Try to reconnect
   }
-
-  delay(25); // Adjust delay to control the smoothness of the scrolling
 }
+
+void processData()
+{
+  // If data is available from the transmitter, process it
+  if (connected && SerialBT.available()) 
+  { 
+    String receivedData = SerialBT.readString(); // Read data from Bluetooth
+    data = receivedData.toInt();
+    
+    Serial.print("Received: ");
+    Serial.println(data);           // Print received data to Serial Monitor
+    //tft.fillScreen(TFT_BLACK);      // Clear previous display
+    //tft.drawString("Received: " + String(data), 10, 10, 2); // Display received data on TFT
+  }
+}
+
 
 // Function to generate a comma-separated error message based on active bits in the byte
 String generateErrorMessage(int byteValue) {
@@ -124,4 +154,36 @@ String generateErrorMessage(int byteValue) {
 
   return errorMsg;
 }
+
+
+void loop() {
+
+  // Generate the error message based on the current byte value
+  String errorMsg = generateErrorMessage(data);
+
+  // Clear the sprite area
+  errorlist.fillSprite(BGCOLOR);
+
+  // Draw the message starting from the current scroll position
+  errorlist.drawString(errorMsg, -scrollPos, 0, 2); // Draw text, starting position off-screen to the left
+
+  // Push the updated sprite to the screen
+  errorlist.pushSprite(0, 0);
+
+  // Increment scroll position for next frame
+  scrollPos += 2;  // Adjust scroll speed (higher values = faster scrolling)
+
+  // Reset scroll position if the text has fully scrolled off the left side
+  int textWidth = errorlist.textWidth(errorMsg, 2); // Calculate the text width
+  if (scrollPos > textWidth) {
+    scrollPos = 0;          // Restart scrolling from the beginning
+    checkConnection();
+    processData();
+  }
+  
+
+  delay(25); // Adjust delay to control the smoothness of the scrolling
+}
+
+
 
