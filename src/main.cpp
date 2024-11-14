@@ -13,7 +13,7 @@ BluetoothSerial SerialBT;     // Create a Bluetooth Serial object
 #define TXTCOLOR 0xFFFF  // Text color
 #define TXTSIZE 2        // Text size (larger values = larger text)
 int scrollPos = 0;       // Position for horizontal scrolling
-int Testbyte = 0;        // Changing byte value
+int receivedData = 0;
 
 // Error messages associated with each bit in the byte
 String Errormessage1 = "Right indicator";
@@ -76,12 +76,12 @@ void setup() {
 
 void loop() {
   if (SerialBT.available()) { // Check if data is available from the server
-    String receivedData = SerialBT.readString(); // Read data from Bluetooth
-    Serial.print("Received: ");
-    Serial.println(receivedData); // Print received data to Serial Monitor
+    String receivedString = SerialBT.readString(); // Read data from Bluetooth
+    receivedData = receivedString.toInt();
   }
+
   // Generate the error message based on the current byte value
-  String errorMsg = generateErrorMessage(Testbyte);
+  String errorMsg = generateErrorMessage(receivedData);
 
   // Clear the sprite area
   errorlist.fillSprite(BGCOLOR);
@@ -99,7 +99,6 @@ void loop() {
   int textWidth = errorlist.textWidth(errorMsg, 2); // Calculate the text width
   if (scrollPos > textWidth) {
     scrollPos = 0;          // Restart scrolling from the beginning
-    Testbyte = (Testbyte + 1) % 256;  // Increment the byte and wrap back to 0 after 255
   }
 
   delay(25); // Adjust delay to control the smoothness of the scrolling
@@ -107,7 +106,7 @@ void loop() {
 
 // Function to generate a comma-separated error message based on active bits in the byte
 String generateErrorMessage(int byteValue) {
-  String errorMsg = "";
+  String errorMsg = "   ";
 
   if (byteValue & 0x01) errorMsg += Errormessage1 + ", ";
   if (byteValue & 0x02) errorMsg += Errormessage2 + ", ";
