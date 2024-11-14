@@ -107,9 +107,9 @@ void checkConnection()
     connected = false; // Update connection state
     Serial.println("Lost connection");
     Serial.println("Trying to reconnect");
-    //tft.fillScreen(BGCOLOR);        // Clear screen
-    //tft.drawString("Lost connection", 10, 10, 2); // Display lost connection message
-    //tft.drawString("Trying to reconnect", 10, 50, 2); // Display lost connection message
+    tft.fillScreen(BGCOLOR);        // Clear screen
+    tft.drawString("Lost connection", 10, 10, 2); // Display lost connection message
+    tft.drawString("Trying to reconnect", 10, 50, 2); // Display lost connection message
   }
 
   // Reconnect if connection is lost
@@ -150,6 +150,12 @@ String generateErrorMessage(int byteValue) {
   // Remove the trailing ", " if there are any messages
   if (errorMsg.endsWith(", ")) {
     errorMsg = errorMsg.substring(0, errorMsg.length() - 2);
+  }
+
+  // Replace the last comma with " og " if there is more than one error
+  int lastComma = errorMsg.lastIndexOf(", ");
+  if (lastComma != -1) {
+    errorMsg = errorMsg.substring(0, lastComma) + " and" + errorMsg.substring(lastComma + 1);
   }
 
   return errorMsg;
