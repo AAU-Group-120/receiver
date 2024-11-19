@@ -17,7 +17,7 @@ bool connected = false;        // Flag to track Bluetooth connection state
 #define TXTCOLOR 0xFFFF  // Text color
 #define TXTSIZE 2        // Text size (larger values = larger text)
 int scrollPos = 0;       // Position for horizontal scrolling
-int data = 0;
+uint8_t data = 0;
 
 // Error messages associated with each bit in the byte
 String Errormessage1 = "Right indicator";
@@ -92,7 +92,7 @@ void BTConnect()
     Serial.println("Failed to connect. Please restart!");
     tft.fillScreen(BGCOLOR);
     tft.drawString("Failed to connect", 10, 10, 2); // Display failure message
-    tft.drawString("Please restart!", 10, 50, 2); // Display failure message
+    tft.drawString("Please restart!", 10, 50, 2); 
     while (true) { // Stop further attempts if timed out
       delay(1000);
     }
@@ -124,12 +124,12 @@ void processData()
   if (connected && SerialBT.available()) 
   { 
     String receivedData = SerialBT.readString(); // Read data from Bluetooth
-    data = receivedData.toInt();
-    
-    Serial.print("Received: ");
-    Serial.println(data);           // Print received data to Serial Monitor
-    //tft.fillScreen(TFT_BLACK);      // Clear previous display
-    //tft.drawString("Received: " + String(data), 10, 10, 2); // Display received data on TFT
+    int lastTerminating = receivedData.lastIndexOf(0b10000000);
+    if (lastTerminating != -1) {
+      data = receivedData[receivedData.length()-2];
+    }
+    unsigned char message = 0b110;
+    SerialBT.write(message);
   }
 }
 
@@ -163,20 +163,11 @@ String generateErrorMessage(int byteValue) {
 
 
 void loop() {
-
-  // Generate the error message based on the current byte value
   String errorMsg = generateErrorMessage(data);
 
-  // Clear the sprite area
   errorlist.fillSprite(BGCOLOR);
-
-  // Draw the message starting from the current scroll position
-  errorlist.drawString(errorMsg, -scrollPos, 0, 2); // Draw text, starting position off-screen to the left
-
-  // Push the updated sprite to the screen
+  errorlist.drawString(errorMsg, -scrollPos, 0, 2);
   errorlist.pushSprite(0, 0);
-
-  // Increment scroll position for next frame
   scrollPos += 2;  // Adjust scroll speed (higher values = faster scrolling)
 
   // Reset scroll position if the text has fully scrolled off the left side
